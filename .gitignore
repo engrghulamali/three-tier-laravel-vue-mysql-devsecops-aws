@@ -5,8 +5,8 @@ __pycache__
 venv
 
 
-/jenkins-server-terraform/.terraform.lock.hcl
-/jenkins-server-terraform/.terraform
-/jenkins-server-terraform/devsecops-project.pem
+/terraform/.terraform.lock.hcl
+/terraform/.terraform
+/terraform/devsecops-project.pem
 notes.txt
 .pem
