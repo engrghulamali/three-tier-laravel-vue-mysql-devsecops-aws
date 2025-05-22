@@ -440,3 +440,6 @@ Route::prefix('v1')->group(function () use ($router) {
 
     // Route::get('/user', [AuthUserController::class, 'getUserInfo']);
 });
+Route::get('/health', function () {
+    return response()->json(['status' => 'ok']);
+});

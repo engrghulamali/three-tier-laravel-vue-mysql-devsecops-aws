@@ -1,12 +1,12 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: postgres-volume-claim
+  name: mysql-volume-claim
   namespace: three-tier
 spec: 
   accessModes:  
     - ReadWriteOnce
-  storageClassName: ""
+  storageClassName: ""  # This must be empty to bind with a manual hostPath PV
   resources:
     requests:
       storage: 1Gi
