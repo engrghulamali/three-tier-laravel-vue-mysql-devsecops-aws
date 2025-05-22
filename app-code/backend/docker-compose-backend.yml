@@ -1,0 +1,45 @@
+version: '3.5'
+services:
+  mysql:
+    platform: 'linux/amd64'
+    image: mysql:8.0
+    container_name: laravel-mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=rootpassword123
+      - MYSQL_DATABASE=laravel_db
+      - MYSQL_USER=laravel_user
+      - MYSQL_PASSWORD=laravel_pass
+    ports:
+      - '3306:3306'
+    volumes:
+      - laravel-mysql-data:/var/lib/mysql
+    networks:
+      - laravel-network
+
+  app:
+    build:
+      context: ./app-code/backend
+      dockerfile: Dockerfile
+    container_name: laravel-app
+    depends_on:
+      - mysql
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./app-code/backend:/home/devops-backend
+    environment:
+      - DB_CONNECTION=mysql
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_DATABASE=laravel_db
+      - DB_USERNAME=laravel_user
+      - DB_PASSWORD=laravel_pass
+    networks:
+      - laravel-network
+
+volumes:
+  laravel-mysql-data:
+
+networks:
+  laravel-network:
+    driver: bridge
