@@ -28,7 +28,8 @@ WORKDIR /var/www
 
 # Copy composer files and install dependencies
 COPY composer.json composer.lock ./
-RUN composer install --no-dev --optimize-autoloader --no-interaction
+RUN chmod +x artisan && \
+    composer install --no-dev --optimize-autoloader --no-interaction
 
 # Copy application source code
 COPY . .
