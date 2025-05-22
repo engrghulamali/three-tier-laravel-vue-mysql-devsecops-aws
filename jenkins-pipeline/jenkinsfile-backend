@@ -89,7 +89,7 @@ pipeline {
                 git branch: 'main', credentialsId: 'GITHUB', url: 'https://github.com/engrghulamali/three-tier-laravel-vue-mysql-devsecops-aws.git'
             }
         }
-        stage('Update Deployment file') {
+       stage('Update Deployment file') {
             environment {
                 GIT_REPO_NAME = "three-tier-laravel-vue-mysql-devsecops-aws"
                 GIT_USER_NAME = "engrghulamali"
@@ -100,18 +100,28 @@ pipeline {
                         sh '''
                             git config user.email "engineerlife021@gmail.com"
                             git config user.name "engrghulamali"
+                            
+                            if [ ! -f deployment.yaml ]; then
+                                echo "❌ deployment.yaml not found"
+                                exit 1
+                            fi
+
                             BUILD_NUMBER=${BUILD_NUMBER}
-                            echo $BUILD_NUMBER
+                            echo "Build number: $BUILD_NUMBER"
+
                             imageTag=$(grep -oP '(?<=backend:)[^ ]+' deployment.yaml)
-                            echo $imageTag
+                            echo "Current image tag: $imageTag"
+
                             sed -i "s/${AWS_ECR_REPO_NAME}:${imageTag}/${AWS_ECR_REPO_NAME}:${BUILD_NUMBER}/" deployment.yaml
+
                             git add deployment.yaml
-                            git commit -m "Update deployment Image to version \${BUILD_NUMBER}"
+                            git commit -m "Update deployment Image to version ${BUILD_NUMBER}"
                             git push https://${GITHUB_TOKEN}@github.com/${GIT_USER_NAME}/${GIT_REPO_NAME} HEAD:main
                         '''
                     }
                 }
             }
         }
+
     }
 }
