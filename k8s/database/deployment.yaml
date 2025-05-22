@@ -2,39 +2,44 @@ apiVersion: apps/v1
 kind: Deployment
 metadata: 
   namespace: three-tier
-  name: postgres
+  name: mysql
 spec: 
   replicas: 1
   selector:
     matchLabels:
-      app: postgres
+      app: mysql
   template:
     metadata:
       labels: 
-        app: postgres
+        app: mysql
     spec: 
       containers:
-      - name: postgres
-        image: postgres:latest
+      - name: mysql
+        image: mysql:8.0
         ports:
-        - containerPort: 5432
+        - containerPort: 3306
         env: 
-          - name: POSTGRES_USER
+          - name: MYSQL_ROOT_PASSWORD
             valueFrom:
               secretKeyRef:
-                name: postgres-sec
-                key: username
-          - name: POSTGRES_PASSWORD
-            valueFrom:
-              secretKeyRef:
-                name: postgres-sec
-                key: password
-          - name: POSTGRES_DB
+                name: mysql-sec
+                key: root_password
+          - name: MYSQL_DATABASE
             value: mydatabase
+          - name: MYSQL_USER
+            valueFrom:
+              secretKeyRef:
+                name: mysql-sec
+                key: username
+          - name: MYSQL_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: mysql-sec
+                key: password
         volumeMounts:
-          - name: postgres-volume
-            mountPath: /var/lib/postgresql/data
+          - name: mysql-volume
+            mountPath: /var/lib/mysql
       volumes: 
-      - name: postgres-volume
+      - name: mysql-volume
         persistentVolumeClaim:
-          claimName: postgres-volume-claim
+          claimName: mysql-volume-claim

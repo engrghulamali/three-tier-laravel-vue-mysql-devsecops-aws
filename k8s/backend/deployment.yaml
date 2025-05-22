@@ -28,31 +28,35 @@ spec:
         image: 842945290089.dkr.ecr.ap-south-1.amazonaws.com/backend:latest
         imagePullPolicy: Always
         env:
-          - name: POSTGRES_CONN_STR
-            value: postgresql://$(POSTGRES_USERNAME):$(POSTGRES_PASSWORD)@postgres-svc:5432/mydatabase
-          - name: POSTGRES_USERNAME
-            valueFrom:
-              secretKeyRef:
-                name: postgres-sec
-                key: username
-          - name: POSTGRES_PASSWORD
-            valueFrom:
-              secretKeyRef:
-                name: postgres-sec
-                key: password
-          - name: POSTGRES_DB
+          - name: DB_CONNECTION
+            value: mysql
+          - name: DB_HOST
+            value: mysql-svc  # Update this if your MySQL service has a different name
+          - name: DB_PORT
+            value: "3306"
+          - name: DB_DATABASE
             value: mydatabase
+          - name: DB_USERNAME
+            valueFrom:
+              secretKeyRef:
+                name: mysql-sec
+                key: username
+          - name: DB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: mysql-sec
+                key: password
         ports:
         - containerPort: 8000
         livenessProbe: 
           httpGet:
-            path: /api
+            path: /api/health
             port: 8000
           initialDelaySeconds: 2
           periodSeconds: 5
         readinessProbe:
           httpGet:
-            path: /api
+            path: /api/health
             port: 8000
           initialDelaySeconds: 5
           periodSeconds: 5
