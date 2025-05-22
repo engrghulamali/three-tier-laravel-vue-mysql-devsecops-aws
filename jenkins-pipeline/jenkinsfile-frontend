@@ -95,11 +95,11 @@ pipeline {
                 GIT_USER_NAME = "engrghulamali"
             }
             steps {
-                dir('kubernetes-manifests/frontend') {
+                dir('k8s/frontend') {
                     withCredentials([string(credentialsId: 'github', variable: 'GITHUB_TOKEN')]) {
                         // First, list the files in the directory to check if deployment.yaml exists
                         sh '''
-                            echo "Listing files in kubernetes-manifests/frontend directory:"
+                            echo "Listing files in k8s/frontend directory:"
                             ls -l
                         '''
                         sh '''
