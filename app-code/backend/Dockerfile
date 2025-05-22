@@ -28,14 +28,14 @@ WORKDIR /var/www
 
 # Copy composer files and install dependencies
 COPY composer.json composer.lock ./
-RUN composer install --no-dev --optimize-autoloader --no-interaction
+RUN chmod +x artisan && \
+    composer install --no-dev --optimize-autoloader --no-interaction
 
 # Copy application source code
 COPY . .
 
 # Set permissions for Laravel storage and bootstrap cache
-RUN chmod +x artisan && \
-    chown -R www-data:www-data storage bootstrap/cache && \
+RUN chown -R www-data:www-data storage bootstrap/cache && \
     chmod -R 775 storage bootstrap/cache
 
 # Stage 2: Production image
