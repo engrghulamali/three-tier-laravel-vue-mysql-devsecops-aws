@@ -24,19 +24,19 @@ RUN docker-php-ext-configure gd --with-jpeg --with-webp --with-xpm && \
 # Install Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
+# Set working directory
 WORKDIR /var/www
 
-# Copy composer files and install dependencies
-COPY composer.json composer.lock ./
-RUN chmod +x artisan && \
-    composer install --no-dev --optimize-autoloader --no-interaction
-
-# Copy application source code
+# Copy full Laravel application (must include artisan)
 COPY . .
+
+# Run Composer install AFTER artisan is copied
+RUN composer install --no-dev --optimize-autoloader --no-interaction
 
 # Set permissions for Laravel storage and bootstrap cache
 RUN chown -R www-data:www-data storage bootstrap/cache && \
-    chmod -R 775 storage bootstrap/cache
+    chmod -R 775 storage bootstrap/cache && \
+    chmod +x artisan
 
 # Stage 2: Production image
 FROM php:8.2-fpm-alpine
@@ -62,7 +62,7 @@ COPY --from=build /var/www /var/www
 # Set working directory
 WORKDIR /var/www
 
-# Set permissions again (just to be safe)
+# Final permissions
 RUN chown -R www-data:www-data storage bootstrap/cache && \
     chmod -R 775 storage bootstrap/cache
 
