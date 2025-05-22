@@ -34,7 +34,8 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction
 COPY . .
 
 # Set permissions for Laravel storage and bootstrap cache
-RUN chown -R www-data:www-data storage bootstrap/cache && \
+RUN chmod +x artisan && \
+    chown -R www-data:www-data storage bootstrap/cache && \
     chmod -R 775 storage bootstrap/cache
 
 # Stage 2: Production image
