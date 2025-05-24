@@ -1,3 +1,4 @@
+# ----------------------------------------
 # Stage 1: Build Laravel dependencies
 FROM php:8.2-fpm-alpine AS build
 
@@ -26,22 +27,23 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 # Set work directory
 WORKDIR /var/www
 
-# Copy Laravel app
+# Copy Laravel application
 COPY . .
 
 # Install Laravel dependencies
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 
-# Set correct permissions
+# Set permissions
 RUN chown -R www-data:www-data storage bootstrap/cache && \
     chmod -R 775 storage bootstrap/cache && \
     chmod +x artisan
 
-# ----------------------
-# Stage 2: Production Image
+
+# ----------------------------------------
+# Stage 2: Production container
 FROM php:8.2-fpm-alpine
 
-# Install system dependencies including nginx & supervisor
+# Install dependencies: nginx, supervisor, PHP extensions
 RUN apk add --no-cache \
     bash \
     nginx \
@@ -55,26 +57,25 @@ RUN apk add --no-cache \
     zip \
     unzip
 
-# Install PHP extensions
 RUN docker-php-ext-configure gd --with-jpeg --with-webp --with-xpm && \
     docker-php-ext-install gd pdo pdo_mysql zip bcmath mbstring opcache
 
-# Copy app from build stage
+# Set work directory
+WORKDIR /var/www
+
+# Copy built app from previous stage
 COPY --from=build /var/www /var/www
 
-# Copy configs
+# Copy configuration files
 COPY ./nginx.conf /etc/nginx/nginx.conf
 COPY ./supervisord.conf /etc/supervisord.conf
 
-# Set working directory
-WORKDIR /var/www
-
-# Set final permissions
+# Final permissions
 RUN chown -R www-data:www-data storage bootstrap/cache && \
     chmod -R 775 storage bootstrap/cache
 
-# Expose port 80 (handled by nginx)
+# Expose HTTP port
 EXPOSE 80
 
-# Start Supervisor (which runs nginx + php-fpm)
+# Launch Supervisor to run nginx and php-fpm
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]
