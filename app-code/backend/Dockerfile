@@ -1,7 +1,7 @@
-# Stage 1: Composer install and build dependencies
+# Stage 1: Build Laravel dependencies
 FROM php:8.2-fpm-alpine AS build
 
-# Install system dependencies and PHP extensions needed by Laravel
+# Install dependencies and PHP extensions
 RUN apk add --no-cache \
     bash \
     git \
@@ -17,33 +17,35 @@ RUN apk add --no-cache \
     autoconf \
     build-base
 
-# Install PHP extensions
 RUN docker-php-ext-configure gd --with-jpeg --with-webp --with-xpm && \
     docker-php-ext-install gd pdo pdo_mysql zip bcmath mbstring opcache
 
 # Install Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-# Set working directory
+# Set work directory
 WORKDIR /var/www
 
-# Copy full Laravel application (must include artisan)
+# Copy Laravel app
 COPY . .
 
-# Run Composer install AFTER artisan is copied
+# Install Laravel dependencies
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 
-# Set permissions for Laravel storage and bootstrap cache
+# Set correct permissions
 RUN chown -R www-data:www-data storage bootstrap/cache && \
     chmod -R 775 storage bootstrap/cache && \
     chmod +x artisan
 
-# Stage 2: Production image
+# ----------------------
+# Stage 2: Production Image
 FROM php:8.2-fpm-alpine
 
-# Install system dependencies and PHP extensions (same as build stage)
+# Install system dependencies including nginx & supervisor
 RUN apk add --no-cache \
     bash \
+    nginx \
+    supervisor \
     libpng-dev \
     libjpeg-turbo-dev \
     libwebp-dev \
@@ -53,21 +55,26 @@ RUN apk add --no-cache \
     zip \
     unzip
 
+# Install PHP extensions
 RUN docker-php-ext-configure gd --with-jpeg --with-webp --with-xpm && \
     docker-php-ext-install gd pdo pdo_mysql zip bcmath mbstring opcache
 
-# Copy installed app from build stage
+# Copy app from build stage
 COPY --from=build /var/www /var/www
+
+# Copy configs
+COPY ./nginx.conf /etc/nginx/nginx.conf
+COPY ./supervisord.conf /etc/supervisord.conf
 
 # Set working directory
 WORKDIR /var/www
 
-# Final permissions
+# Set final permissions
 RUN chown -R www-data:www-data storage bootstrap/cache && \
     chmod -R 775 storage bootstrap/cache
 
-# Expose port 9000 (default PHP-FPM port)
-EXPOSE 9000
+# Expose port 80 (handled by nginx)
+EXPOSE 80
 
-# Start PHP-FPM server
-CMD ["php-fpm"]
+# Start Supervisor (which runs nginx + php-fpm)
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]
