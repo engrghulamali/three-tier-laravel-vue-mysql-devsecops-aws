@@ -10,12 +10,13 @@ metadata:
 spec:
   ingressClassName: alb
   rules:
-    - http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: frontend
-                port:
-                  number: 3000
+    - host: a5fa6bc0b51bb4992a37ec1bb0437fc6-963901666.ap-south-1.elb.amazonaws.com # Use your backend ALB DNS here
+      http:
+          paths:
+            - path: /
+              pathType: Prefix
+              backend:
+                service:
+                  name: frontend
+                  port:
+                    number: 3000
